@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Security, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict, List
 
 from enums import IOCType
 from utils import json_serializer
@@ -15,7 +15,7 @@ security = APIKeyHeader(name="X-API-Key")
 
 def api_key_auth():
     if env.DEV:
-        return lambda *_: True
+        return lambda: True
 
     def check_key(api_key: str = Security(security)):
         if api_key != env.API_KEY:
@@ -25,11 +25,12 @@ def api_key_auth():
     return check_key
 
 
-@http_api.get("/v1/get/iocs", dependencies=[Depends(api_key_auth())])
+@http_api.post("/v1/get/iocs", dependencies=[Depends(api_key_auth())])
 def _get_iocs(
     page_no: int,
     per_page: int,
     type_: IOCType,
+    filters: Dict[str, List] = {},
     date_from: datetime = None,
     date_to: datetime = None,
 ):
@@ -37,6 +38,7 @@ def _get_iocs(
         iocs.get_iocs(
             skip=(page_no * per_page),
             limit=per_page,
+            filters=filters,
             type_=type_,
             date_from=date_from,
             date_to=date_to,

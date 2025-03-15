@@ -29,6 +29,7 @@ def get_iocs(
     pipeline.extend([{"$skip": skip}, {"$limit": limit}])
     pipeline.append({"$project": {"_id": 0, "source_meta": 0}})
     res = AppDB().IOCs.aggregate(mongo_serializer(pipeline))
-    res = list(map(lambda finding: IOCFinding(**finding), res))
+    res = list(res)
+    # res = list(map(lambda finding: IOCFinding(**finding), res))
     return res
 
