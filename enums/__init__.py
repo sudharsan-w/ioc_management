@@ -18,3 +18,5 @@ class SourceType(Enum):
     misp = "MISP"
     storage_bucket = "STORAGE_BUCKET"
 
+class Lang(Enum): 
+    En = "en"

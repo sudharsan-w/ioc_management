@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Dict, Any, Union
 
-from enums import IOCType, SourceType
+from enums import IOCType, SourceType, Lang
 
 
 class SourceRef(BaseModel):
@@ -19,3 +19,25 @@ class IOCFinding(BaseModel):
     meta: Dict
     source_meta: Dict
     created_at: datetime
+
+
+class GeoLocation(BaseModel):
+
+    class Cords(BaseModel):
+        latitude: float
+        longitude: float
+
+    class Country(BaseModel):
+        names: Dict[Union[Lang, str], str]
+
+    class Continent(BaseModel):
+        names: Dict[Union[Lang, str], str]
+
+    class City(BaseModel):
+        names: Dict[Union[Lang, str], str]
+
+    ipv4: str
+    location: Cords
+    country: Country
+    continent: Continent
+    city: City

@@ -43,7 +43,7 @@ class AppDB(DBConnection):
             self.IOCSources = self[self._database].get_collection(
                 "iocs_sources", codec_options
             )
-            self.IOCSources = self[self._database].get_collection(
-                "iocs_sources", codec_options
+            self.GeoLocation = self[self._database].get_collection(
+                "location", codec_options
             )
             
