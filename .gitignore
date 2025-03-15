@@ -67,3 +67,6 @@ docs/_build/
 .DS_Store
 
 Thumbs.db
+
+
+.env
