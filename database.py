@@ -46,4 +46,7 @@ class AppDB(DBConnection):
             self.GeoLocation = self[self._database].get_collection(
                 "location", codec_options
             )
+            self.ASNRecords = self[self._database].get_collection(
+                "asn", codec_options
+            )
             
