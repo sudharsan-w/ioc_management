@@ -36,8 +36,13 @@ class GeoLocation(BaseModel):
     class City(BaseModel):
         names: Dict[Union[Lang, str], str]
 
+    class Subdivision(BaseModel):
+        names: Dict[Union[Lang, str], str]
+
     ipv4: str
     location: Cords
     country: Country
     continent: Continent
     city: City
+    subdivisions: List[Subdivision]
+
