@@ -96,5 +96,5 @@ def is_valid_vpa(txt):
 
 def if_null(*args):
     for arg in args:
-        if not args:
+        if not arg:
             return arg
