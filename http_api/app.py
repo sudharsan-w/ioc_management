@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from enums import IOCType
 from utils import json_serializer
-from core import iocs, geo, client
+from core import iocs, geo, asn, client
 from globals_ import env
 
 http_api = FastAPI()
@@ -49,6 +49,10 @@ def _get_iocs(
 @http_api.get("/v1/get/location", dependencies=[Depends(api_key_auth())])
 def _get_location(ip: str):
     return json_serializer(geo.get_location(ip))
+
+@http_api.get("/v1/get/asn", dependencies=[Depends(api_key_auth())])
+def _get_asn(ip: str):
+    return json_serializer(asn.get_asn_info(ip))
 
 
 @http_api.get("/v1/get/entity_info", dependencies=[Depends(api_key_auth())])
