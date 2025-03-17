@@ -44,5 +44,4 @@ class GeoLocation(BaseModel):
     country: Country
     continent: Continent
     city: City
-    subdivisions: List[Subdivision]
-
+    subdivisions: List[Subdivision] = []
