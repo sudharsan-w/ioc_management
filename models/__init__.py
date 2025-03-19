@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field
+from pydantic_core import core_schema
 from datetime import datetime
 from typing import List, Dict, Any, Union, Mapping, Literal
 
 from enums import IOCType, SourceType, Lang
 
 SortOrder = Literal["asc", "desc"]
-
 
 class Model(BaseModel):
 
@@ -51,6 +51,29 @@ class IOCFinding(Model):
     created_at: datetime
 
 
+class Names(Dict[Lang, str]):
+
+    @classmethod
+    def validate(cls, val):
+        if not isinstance(val, Mapping):
+            e = f"{cls.__name__} expects a dictionary, but received a {type(val).__name__}"
+            raise TypeError(e)
+        return {
+            Lang._value2member_map_[k]: v
+            for k, v in val.items()
+            if k in Lang._value2member_map_
+        }
+
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _, __):
+        return core_schema.chain_schema(
+            [
+                core_schema.dict_schema(),
+                core_schema.no_info_plain_validator_function(lambda v: cls.validate(v)),
+            ]
+        )
+
+
 class GeoLocation(Model):
 
     class Cords(Model):
@@ -58,16 +81,16 @@ class GeoLocation(Model):
         longitude: float
 
     class Country(Model):
-        names: Dict[Union[Lang, str], str]
+        names: Names
 
     class Continent(Model):
-        names: Dict[Union[Lang, str], str]
+        names: Names
 
     class City(Model):
-        names: Dict[Union[Lang, str], str]
+        names: Names
 
     class Subdivision(Model):
-        names: Dict[Union[Lang, str], str]
+        names: Names
 
     ipv4: str
     location: Cords
