@@ -12,6 +12,7 @@ class Env(BaseSettings):
     APP_MONGO_URL: str
     APP_DB_NAME: str
     API_KEY: str
+    API_PREFIX: str
     DEFAULT_TIME_ZONE: BaseTzInfo
 
     @field_validator("DEFAULT_TIME_ZONE", mode="before")
