@@ -9,7 +9,7 @@ from core import iocs, geo, asn, client
 from models import SortOrder
 from globals_ import env
 
-http_api = FastAPI(docs_url=f"{env.API_PREFIX}/docs")
+http_api = FastAPI(docs_url=f"{env.API_PREFIX}/docs", openapi_prefix=env.API_PREFIX)
 
 router = APIRouter(prefix=env.API_PREFIX)
 
