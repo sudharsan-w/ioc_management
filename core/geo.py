@@ -10,4 +10,4 @@ def get_location(ip: str):
     location = AppDB().GeoLocation.find_one({"ipv4": ".".join(octects_copy)})
     if not location:
         return None
-    return GeoLocation(**location)
+    return GeoLocation(location)

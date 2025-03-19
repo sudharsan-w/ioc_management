@@ -13,18 +13,18 @@ def enrich_ioc(type_: IOCType, ioc: Any):
 
     if type_ == IOCType.ipv4:
         location = geo.get_location(ip=ioc)
-        meta["country"] = location.country.names[Lang.En.value]
-        meta["city"] = location.city.names[Lang.En.value]
+        meta["country"] = location.country.names[Lang.En]
+        meta["city"] = location.city.names[Lang.En]
         meta["region"] = (
             None
             if len(location.subdivisions) == 0
-            else location.subdivisions[0].names[Lang.En.value]
+            else location.subdivisions[0].names[Lang.En]
         )
         meta["lat"] = location.location.latitude
         meta["long"] = location.location.longitude
 
         asn_info = asn.get_asn_info(ip=ioc)
-        print(asn_info)
+        asn_info["asn"]
         meta = {**meta, **asn_info}
 
     return {"type_": type_, "entity": ioc, **meta}
