@@ -20,3 +20,8 @@ class SourceType(Enum):
 
 class Lang(Enum): 
     En = "en"
+
+class TimeGranularity():
+    day = "DAY"
+    hour = "HOUR"
+    month = "MONTH"

@@ -86,7 +86,7 @@ ASN_PROJECTION = lambda: [
 ]
 
 
-def get_asn_info(ip: str):
+def get_asn_info(ip: str) -> ASN|None:
     octects = ip.split(".")
     octects_copy = [*octects]
     octects_copy[2] = "0"

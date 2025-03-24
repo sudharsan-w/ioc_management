@@ -2,7 +2,7 @@ from database import AppDB
 from models import GeoLocation
 
 
-def get_location(ip: str):
+def get_location(ip: str) -> GeoLocation|None:
     octects = ip.split(".")
     octects_copy = [*octects]
     octects_copy[2] = "0"

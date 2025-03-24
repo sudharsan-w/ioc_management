@@ -1,6 +1,6 @@
 import math
 from datetime import datetime
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any
 
 from enums import IOCType
 from models import IOCFinding, SortOrder
@@ -20,7 +20,7 @@ def get_iocs(
 ):
     pipeline = []
     pipeline.insert(0, {"$match": {"ioc_types": type_}})
-    pipeline.append({"$unwind": f"$keys.{type_.value}"})
+    # pipeline.append({"$unwind": f"$keys.{type_.value}"})
     if filters:
         if "ioc" in filters:
             pipeline.append(
@@ -57,7 +57,7 @@ def get_iocs(
         data = []
     else:
         total_results = res[0]["agg"][0]["count"]
-        total_pages = math.ceil(total_results // limit)
+        total_pages = math.ceil(total_results / limit)
         page_no = page
         has_prev_page = page_no > 1
         has_next_page = page_no < total_pages
@@ -73,3 +73,27 @@ def get_iocs(
         "has_next_page": has_next_page,
         "has_prev_page": has_prev_page,
     }
+
+
+def ioc_lookup(type_: IOCType, ioc: Any) -> Dict|None:
+    pipeline = [
+        {"$match": {f"keys.{type_.value}": ioc}},
+        {
+            "$group": {
+                "_id": None,
+                "no_occurrences": {"$sum":1},
+                "sources": {
+                    "$addToSet": "$source_ref"
+                },
+                "first_occurred_at": {"$min": "$meta.date"}
+            }
+        }
+    ]
+    res = AppDB().IOCs.aggregate(pipeline)
+    res = list(res)
+    if len(res) == 0:
+        return None
+    res[0]["first_occurred_at"] = res[0].get("first_occurred_at", None)
+    if not isinstance(res[0]["first_occurred_at"], datetime):
+        res[0]["first_occurred_at"] = None
+    return res[0]

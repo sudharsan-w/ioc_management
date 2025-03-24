@@ -6,7 +6,7 @@ from enum import Enum
 from pytz import timezone
 from pydantic import BaseModel
 
-from globals_ import env
+from globals_ import env, sql_Base
 
 ID = lambda: str(uuid.uuid4())
 
@@ -36,9 +36,14 @@ def extract_url_domain(s):
     s = s.replace('"', "")
     return s
 
+def sql_base_serializer(obj: sql_Base): # type: ignore
+    return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+
 
 def mongo_serializer(obj):
     func_ = mongo_serializer
+    if isinstance(obj, sql_Base):
+        return func_(sql_base_serializer(obj))
     if isinstance(obj, uuid.UUID):
         return str(obj)
     if isinstance(obj, datetime):
@@ -56,6 +61,8 @@ def mongo_serializer(obj):
 
 def json_serializer(obj):
     func_ = json_serializer
+    if isinstance(obj, sql_Base):
+        return func_(sql_base_serializer(obj))
     if isinstance(obj, uuid.UUID):
         return str(obj)
     if isinstance(obj, ObjectId):
