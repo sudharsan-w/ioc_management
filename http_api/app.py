@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Union
 
 from enums import IOCType
 from utils import json_serializer
-from core import iocs, geo, asn, netflow, client
+from core import iocs, geo, asn, netflow, client, ipdr
 from models import SortOrder
 from globals_ import env
 
@@ -69,6 +69,10 @@ def _get_asn(ip: str):
 def _entity_info(type_: IOCType, val: Any):
     return json_serializer(client.enrich_ioc(type_=type_, ioc=val))
 
+
+@router.get("/v1/get/ipdr_enrichment", dependencies=[Depends(api_key_auth())], tags=["IOC"])
+def _get_viop(ip: str, port: Union[int, None]=None):
+    return json_serializer(client.get_ipdr_enrichment(ip=ip, port=port))
 
 @router.post(
     "/v1/get/netflow", dependencies=[Depends(api_key_auth())], tags=["NETFLOW"]

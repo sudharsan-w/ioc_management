@@ -11,15 +11,16 @@ from utils import mongo_serializer
 def get_iocs(
     page: int,
     limit: int,
-    type_: IOCType,
-    filters: Dict[str, List],
+    type_: Union[IOCType, None]=None,
+    filters: Dict[str, List]={},
     sort_by: Union[str, None] = None,
     sort_order: SortOrder = "asc",
     date_from: datetime = None,
     date_to: datetime = None,
 ):
-    pipeline = []
-    pipeline.insert(0, {"$match": {"ioc_types": type_}})
+    pipeline = [{"$match": {"source_ref": {"$exists": True}}}]
+    if type_:
+        pipeline.insert(0, {"$match": {"ioc_types": type_}})
     # pipeline.append({"$unwind": f"$keys.{type_.value}"})
     if filters:
         if "ioc" in filters:
@@ -27,11 +28,11 @@ def get_iocs(
                 {"$match": {f"keys.{type_.value}": {"$in": filters["ioc"]}}}
             )
     if date_from and date_to:
-        pipeline.append({"$match": {"meta.date": {"$gte": date_from, "$lte": date_to}}})
+        pipeline.append({"$match": {"created_at": {"$gte": date_from, "$lte": date_to}}})
     elif date_to:
-        pipeline.append({"$match": {"meta.date": {"$gte": date_from}}})
+        pipeline.append({"$match": {"created_at": {"$gte": date_from}}})
     elif date_from:
-        pipeline.append({"$match": {"meta.date": {"$lte": date_to}}})
+        pipeline.append({"$match": {"created_at": {"$lte": date_to}}})
     pipeline.append({"$sort": {"_id": -1}})
     pipeline.append({"$project": {"_id": 0, "source_meta": 0}})
     if sort_by:
@@ -62,7 +63,7 @@ def get_iocs(
         has_prev_page = page_no > 1
         has_next_page = page_no < total_pages
         data = res[0]["paginated"]
-    # data = list(map(IOCFinding, data))
+    data = list(map(IOCFinding, data))
     # res = list(map(lambda finding: IOCFinding(**finding), res))
     return {
         "data": data,
@@ -96,4 +97,6 @@ def ioc_lookup(type_: IOCType, ioc: Any) -> Dict|None:
     res[0]["first_occurred_at"] = res[0].get("first_occurred_at", None)
     if not isinstance(res[0]["first_occurred_at"], datetime):
         res[0]["first_occurred_at"] = None
+    if not res[0]["sources"]:
+        res[0]["sources"] = []
     return res[0]
