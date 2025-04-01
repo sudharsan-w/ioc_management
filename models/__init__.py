@@ -1,11 +1,13 @@
 from pydantic import BaseModel, Field
 from pydantic_core import core_schema
 from datetime import datetime
-from typing import List, Dict, Any, Union, Mapping, Literal
+from typing import List, Dict, Any, Union, Mapping, Literal, Annotated
+from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 
 from enums import IOCType, SourceType, Lang
 
 SortOrder = Literal["asc", "desc"]
+
 
 class Model(BaseModel):
 
@@ -35,6 +37,29 @@ class Model(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class Source(Model):
+    id: str
+    type: SourceType
+    key: str
+    # url: str
+    created_at: datetime
+    attribution: Dict = {}
+
+
+class StorageBucketSource(Source):
+    type: SourceType = SourceType.storage_bucket
+    bucketname: Union[str, None] = None
+    username_space: Union[str, None] = None
+
+
+class MISPSource(Source):
+    type: SourceType = SourceType.misp
+
+
+class FeedSource(Source):
+    type: SourceType = SourceType.feed
+
+
 class SourceRef(Model):
     key: str
     type: SourceType
@@ -43,11 +68,11 @@ class SourceRef(Model):
 class IOCFinding(Model):
     id: str
     source: str
-    source_ref: SourceRef
+    source_ref: Union[SourceRef, None] = None
     ioc_types: List[IOCType]
-    keys_: Dict[IOCType, Union[Any, List[Any]]] = Field(..., alias="keys")
-    meta: Dict
-    source_meta: Dict
+    keys: Dict[IOCType, Union[Any, List[Any]]] = Field(..., alias="keys")
+    meta: Dict = {}
+    source_meta: Dict = {}
     created_at: datetime
 
 
@@ -111,3 +136,24 @@ class ASN(Model):
     hosting: bool
     relay: bool
     service: bool
+
+
+SourceTypeVar = Annotated[
+    Union[MISPSource, FeedSource, StorageBucketSource], Field(discriminator="type")
+]
+
+
+def create_source(*args, **kwargs):
+    if len(args) > 0:
+        source_type = args[0].get("type")
+    if "type" in kwargs:
+        source_type = kwargs["type"]
+    source_type = SourceType(source_type)
+
+    if source_type == SourceType.misp:
+        return MISPSource(*args, **kwargs)
+    if source_type == SourceType.feed:
+        return FeedSource(*args, **kwargs)
+    if source_type == SourceType.storage_bucket:
+        return StorageBucketSource(*args, **kwargs)
+
