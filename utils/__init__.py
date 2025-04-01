@@ -1,5 +1,7 @@
 import re
+import json
 import uuid
+from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
 from bson import ObjectId
 from datetime import datetime
 from enum import Enum
@@ -27,6 +29,10 @@ def curr_time():
     return to_utc(datetime.now().astimezone())
 
 
+def date_from_datetime(date_obj: datetime):
+    return date_obj.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
 def extract_url_domain(s):
     s = s.replace("http://", "")
     s = s.replace("https://", "")
@@ -36,12 +42,15 @@ def extract_url_domain(s):
     s = s.replace('"', "")
     return s
 
-def sql_base_serializer(obj: sql_Base): # type: ignore
+
+def sql_base_serializer(obj: sql_Base):  # type: ignore
     return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
 
 def mongo_serializer(obj):
     func_ = mongo_serializer
+    if isinstance(obj, IPv4Address) or isinstance(obj, IPv4Network) or isinstance(obj, IPv6Address) or isinstance(obj, IPv6Network):
+        return str(obj)
     if isinstance(obj, sql_Base):
         return func_(sql_base_serializer(obj))
     if isinstance(obj, uuid.UUID):
@@ -61,6 +70,8 @@ def mongo_serializer(obj):
 
 def json_serializer(obj):
     func_ = json_serializer
+    if isinstance(obj, IPv4Address) or isinstance(obj, IPv4Network) or isinstance(obj, IPv6Address) or isinstance(obj, IPv6Network):
+        return str(obj)
     if isinstance(obj, sql_Base):
         return func_(sql_base_serializer(obj))
     if isinstance(obj, uuid.UUID):
@@ -77,6 +88,29 @@ def json_serializer(obj):
         return [func_(e) for e in obj]
     if isinstance(obj, dict):
         return {func_(k): func_(v) for k, v in obj.items()}
+    return obj
+
+
+def csv_serializer(obj):
+    func_ = csv_serializer
+    if isinstance(obj, IPv4Address) or isinstance(obj, IPv4Network) or isinstance(obj, IPv6Address) or isinstance(obj, IPv6Network):
+        return str(obj)
+    if isinstance(obj, sql_Base):
+        return func_(sql_base_serializer(obj))
+    if isinstance(obj, uuid.UUID):
+        return str(obj)
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, Enum):
+        return obj.value
+    if isinstance(obj, BaseModel):
+        return func_(vars(obj))
+    if isinstance(obj, list):
+        return ", ".join([func_(e) for e in obj])
+    if isinstance(obj, dict):
+        return json.dumps({func_(k): func_(v) for k, v in obj.items()})
     return obj
 
 

@@ -157,3 +157,24 @@ def create_source(*args, **kwargs):
     if source_type == SourceType.storage_bucket:
         return StorageBucketSource(*args, **kwargs)
 
+
+class Network(Model):
+    class OrgRef(Model):
+        name: str
+        id: str
+    id: str
+    host_addr: Union[IPv4Network, IPv6Network]
+    broadcast_addr: Union[IPv4Address, IPv6Address]
+    network_addr: Union[IPv4Address, IPv6Address]
+    netmask: Union[IPv4Address, IPv6Address]
+    host_mask: Union[IPv4Address, IPv6Address]
+    # hosts: List[str]
+    network_st: str
+    network_en: str
+    belongs_to: Union[OrgRef, None] = None
+
+
+class Organization(Model):
+    id: str
+    name: str
+    voip_ports: list[int]
