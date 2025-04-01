@@ -13,8 +13,8 @@ class IOCType(Enum):
     cve = "CVE"
 
 
-class SourceType(Enum):
-    files = "FILES"
+class SourceType(str, Enum):
+    feed = "FEED"
     misp = "MISP"
     storage_bucket = "STORAGE_BUCKET"
 
