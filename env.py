@@ -15,6 +15,8 @@ class Env(BaseSettings):
     API_PREFIX: str
     DEFAULT_TIME_ZONE: BaseTzInfo
     NETFLOW_POSTGRES_URL: str
+    FILES_DIR: str
+    GOOGLE_CREDENTIALS_FILE: str
 
     @field_validator("DEFAULT_TIME_ZONE", mode="before")
     def validate_time_zone(cls, value: str) -> BaseTzInfo:
