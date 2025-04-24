@@ -178,3 +178,18 @@ class Organization(Model):
     id: str
     name: str
     voip_ports: list[int]
+
+
+class IOCFindingV2(Model):
+    class SourceRefV2(SourceRef):
+        attr: Dict
+    
+    id: str
+    ioc: str
+    type_: IOCType
+    source_url: str
+    meta: Dict
+    source_ref: SourceRefV2
+    date_published: Union[datetime, None] = None
+    created_at: datetime
+    

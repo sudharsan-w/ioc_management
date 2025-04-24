@@ -29,9 +29,9 @@ class DBConnection(CustomMongoClient):
 
 class AppDB(DBConnection):
 
-    def __new__(cls):
-        instance = super().__new__(cls)
-        return instance
+    # def __new__(cls):
+    #     instance = super().__new__(cls)
+    #     return instance
 
     def __init__(self):
         if not hasattr(self, "_app_initialized"):
@@ -39,6 +39,9 @@ class AppDB(DBConnection):
             self._database = env.APP_DB_NAME
             self.IOCs = self[self._database].get_collection(
                 "iocs", codec_options
+            )
+            self.IOCsV2 = self[self._database].get_collection(
+                "iocs_v2", codec_options
             )
             self.IOCSources = self[self._database].get_collection(
                 "ioc_sources", codec_options
@@ -55,4 +58,5 @@ class AppDB(DBConnection):
             self.Organizations = self[self._database].get_collection(
                 "organization", codec_options
             )
-            
+            self._app_initialized = True
+

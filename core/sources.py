@@ -57,7 +57,9 @@ def _normalized_source(doc) -> SourceTypeVar:
         source = {
             "id": str(uuid4()),
             "type": SourceType.misp.value,
-            "key": extract_domain(doc["source"].replace(doc["source"].split("/")[-1], "")),
+            "key": extract_domain(
+                doc["source"].replace(doc["source"].split("/")[-1], "")
+            ),
             "url": doc["source"].replace(doc["source"].split("/")[-1], ""),
             "created_at": datetime.now(),
         }
@@ -92,46 +94,62 @@ def _normalized_source(doc) -> SourceTypeVar:
     return create_source(source)
 
 
-def get_source(type_: SourceType, key: str) -> SourceTypeVar|None:
+def get_source(type_: SourceType, key: str) -> SourceTypeVar | None:
     source = AppDB().IOCSources.find_one(mongo_serializer({"type": type_, "key": key}))
     print(source, mongo_serializer({"type": type_, "key": key}))
     source = None if not source else create_source(source)
     return source
 
+
 def add_source(source: SourceTypeVar):
-    if ex:=get_source(source.type, source.key):
+    if ex := get_source(source.type, source.key):
         return ex
     source.created_at = curr_time()
     AppDB().IOCSources.insert_one(mongo_serializer(source))
     return source
+
 
 def normalize_source(ioc_finding: IOCFinding):
     source = _normalized_source(ioc_finding.model_dump(by_alias=True))
     source = add_source(source)
     return source
 
+
 def get_ioc_sources(type_: IOCType, ioc: Any):
 
-    sources_refs = AppDB().IOCs.aggregate([
-        {
-            "$match": {f"keys.{type_.value}": ioc}
-        },
-        {
-            "$group": {
-                "_id": None,
-                "source_refs": {
-                    "$addToSet": "$source_ref"
-                }
-            }
-        }
-    ])
+    sources_refs = AppDB().IOCs.aggregate(
+        [
+            {"$match": {f"keys.{type_.value}": ioc}},
+            {"$group": {"_id": None, "source_refs": {"$addToSet": "$source_ref"}}},
+        ]
+    )
     sources_refs = list(sources_refs)
-    sources_refs = [] if len(sources_refs)==0 else sources_refs[0].get("source_refs", [])
+    sources_refs = (
+        [] if len(sources_refs) == 0 else sources_refs[0].get("source_refs", [])
+    )
     sources_refs = list(map(SourceRef, sources_refs))
-    
+
     return list(map(lambda s: get_source(s.type, s.key), sources_refs))
     # if ioc_finding.source_ref:
     #     return get_source(ioc_finding.source_ref.type, ioc_finding.source_ref.key)
-    
+
     # return normalize_source(ioc_finding)
-    
+
+
+def get_source_keys():
+    res = AppDB().IOCSources.aggregate(
+        [{"$group": {"_id": "", "sources": {"$addToSet": "$key"}}}]
+    )
+    res = list(res)
+    if len(res)>0:
+        return res[0]["sources"]
+    return []
+
+def get_threat_types():
+    # res = AppDB().IOCSources.aggregate(
+    #     [{"$group": {"_id": "", "sources": {"$addToSet": "$key"}}}]
+    # )
+    # res = list(res)
+    # if len(res)>0:
+    #     return res[0]["sources"]
+    return ["MALWARE", "RANSOMWARE", "SPAM"]
