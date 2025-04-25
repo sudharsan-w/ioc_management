@@ -43,6 +43,12 @@ class AppDB(DBConnection):
             self.IOCsV2 = self[self._database].get_collection(
                 "iocs_v2", codec_options
             )
+            self.IOCsV3 = self[self._database].get_collection(
+                "iocs_v3", codec_options
+            )
+            self.IOCsV3Cahe = self[self._database].get_collection(
+                "iocs_v3_cache", codec_options
+            )
             self.IOCSources = self[self._database].get_collection(
                 "ioc_sources", codec_options
             )

@@ -264,6 +264,7 @@ def get_iocs_v2(
         },
         {"$set": {"no_sources": {"$size": "$sources_ref"}}},
     ]
+    pipeline = []
     # if type_:
     #     pipeline.insert(0, {"$match": {"ioc_types": type_}})
     # pipeline.append({"$unwind": f"$keys.{type_.value}"})
@@ -294,23 +295,25 @@ def get_iocs_v2(
     elif date_to:
         date_to = date_to + timedelta(days=2) - timedelta(minutes=1)
         pipeline.append({"$match": {"first_found_at": {"$lte": date_to}}})
-    pipeline.append({"$sort": {"_id": -1}})
+    # pipeline.append({"$sort": {"first_found_at": -1}})
     # pipeline.append({"$project": {"_id": 0, "source_meta": 0}})
     if sort_by:
         sort = [{"$sort": {sort_by: 1 if sort_order == "asc" else -1}}]
     else:
-        sort = []
+        sort = [{"$sort": {"first_found_at": -1}}]
     pipeline.append(
         {
             "$facet": {
-                "agg": [{"$count": "count"}],
+                # "agg": [{"$count": "count"}],
                 "paginated": [*sort, {"$skip": (page - 1) * limit}, {"$limit": limit}],
             }
         }
     )
-    res = AppDB().IOCsV2.aggregate(mongo_serializer(pipeline))
+    from pprint import pprint
+    pprint(pipeline)
+    res = AppDB().IOCsV3Cahe.aggregate(mongo_serializer(pipeline))
     res = list(res)
-    if len(res) == 0 or len(res[0]["agg"]) == 0:
+    if len(res) == 0 or len(res[0]["paginated"]) == 0:
         total_results = 0
         total_pages = 0
         page_no = 0
@@ -318,7 +321,8 @@ def get_iocs_v2(
         has_next_page = False
         data = []
     else:
-        total_results = res[0]["agg"][0]["count"]
+        # total_results = res[0]["agg"][0]["count"]
+        total_results = 0
         total_pages = math.ceil(total_results / limit)
         page_no = page
         has_prev_page = page_no > 1
